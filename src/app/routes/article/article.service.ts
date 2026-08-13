@@ -559,6 +559,55 @@ export const deleteComment = async (id: number, userId: number) => {
   });
 };
 
+export const editComment = async (body: string, id: number, userId: number) => {
+  if (!body) {
+    throw new HttpException(422, { errors: { body: ["can't be blank"] } });
+  }
+
+  const comment = await prisma.comment.findUnique({
+    where: {
+      id,
+    },
+  });
+
+  if (!comment) {
+    throw new HttpException(404, {});
+  }
+
+  const updatedComment = await prisma.comment.update({
+    where: {
+      id,
+    },
+    data: {
+      body,
+      updatedAt: new Date(),
+    },
+    include: {
+      author: {
+        select: {
+          username: true,
+          bio: true,
+          image: true,
+          followedBy: true,
+        },
+      },
+    },
+  });
+
+  return {
+    id: updatedComment.id,
+    createdAt: updatedComment.createdAt,
+    updatedAt: updatedComment.updatedAt,
+    body: updatedComment.body,
+    author: {
+      username: updatedComment.author.username,
+      bio: updatedComment.author.bio,
+      image: updatedComment.author.image,
+      following: updatedComment.author.followedBy.some((follow: any) => follow.id === userId),
+    },
+  };
+};
+
 export const favoriteArticle = async (slugPayload: string, id: number) => {
   const { _count, ...article } = await prisma.article.update({
     where: {

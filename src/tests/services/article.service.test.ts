@@ -1,11 +1,63 @@
 import prismaMock from '../prisma-mock';
 import {
   deleteComment,
+  editComment,
   favoriteArticle,
   unfavoriteArticle,
 } from '../../app/routes/article/article.service';
 
 describe('ArticleService', () => {
+  describe('editComment', () => {
+    test('should return the updated comment', async () => {
+      // Given
+      const commentId = 789;
+      const userId = 456;
+      const body = 'updated comment body';
+
+      const mockedComment = {
+        id: commentId,
+        body: 'original body',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        authorId: 123,
+        articleId: 1,
+      };
+
+      const mockedUpdatedComment = {
+        ...mockedComment,
+        body,
+        author: {
+          username: 'RealWorld',
+          bio: null,
+          image: null,
+          followedBy: [],
+        },
+      };
+
+      // When
+      // @ts-ignore
+      prismaMock.comment.findUnique.mockResolvedValue(mockedComment);
+      // @ts-ignore
+      prismaMock.comment.update.mockResolvedValue(mockedUpdatedComment);
+
+      // Then
+      await expect(editComment(body, commentId, userId)).resolves.toHaveProperty('body', body);
+    });
+
+    test('should throw an error if the comment does not exist', () => {
+      // Given
+      const commentId = 789;
+      const userId = 456;
+
+      // When
+      // @ts-ignore
+      prismaMock.comment.findUnique.mockResolvedValue(null);
+
+      // Then
+      expect(editComment('updated body', commentId, userId)).rejects.toThrowError();
+    });
+  });
+
   describe('deleteComment', () => {
     test('should throw an error ', () => {
       // Given
