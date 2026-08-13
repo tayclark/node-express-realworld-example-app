@@ -74,6 +74,53 @@ export const getArticles = async (query: any, id?: number) => {
     },
   });
 
+  if (query.search) {
+    const searchQueries = [
+      ...andQueries,
+      {
+        title: {
+          contains: query.search,
+          mode: 'insensitive',
+        },
+      },
+    ];
+
+    const searchResults = await prisma.article.findMany({
+      where: { AND: searchQueries },
+      orderBy: {
+        createdAt: 'desc',
+      },
+      skip: Number(query.offset) || 0,
+      take: Number(query.limit) || 10,
+      include: {
+        tagList: {
+          select: {
+            name: true,
+          },
+        },
+        author: {
+          select: {
+            username: true,
+            bio: true,
+            image: true,
+            followedBy: true,
+          },
+        },
+        favoritedBy: true,
+        _count: {
+          select: {
+            favoritedBy: true,
+          },
+        },
+      },
+    });
+
+    return {
+      articles: searchResults.map((article: any) => articleMapper(article, id)),
+      articlesCount,
+    };
+  }
+
   const articles = await prisma.article.findMany({
     where: { AND: andQueries },
     orderBy: {

@@ -25,6 +25,7 @@ const router = Router();
  * @queryparam tag
  * @queryparam author
  * @queryparam favorited
+ * @queryparam search filters articles whose title contains the given text
  * @returns articles: list of articles
  */
 router.get('/articles', auth.optional, async (req: Request, res: Response, next: NextFunction) => {

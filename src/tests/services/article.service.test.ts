@@ -2,10 +2,45 @@ import prismaMock from '../prisma-mock';
 import {
   deleteComment,
   favoriteArticle,
+  getArticles,
   unfavoriteArticle,
 } from '../../app/routes/article/article.service';
 
 describe('ArticleService', () => {
+  describe('getArticles', () => {
+    test('should return articles matching the search term', async () => {
+      // Given
+      const mockedArticleResponse = {
+        id: 123,
+        slug: 'how-to-train-your-dragon',
+        title: 'How to train your dragon',
+        description: '',
+        body: '',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        authorId: 456,
+        tagList: [],
+        favoritedBy: [],
+        author: {
+          username: 'RealWorld',
+          bio: null,
+          image: null,
+          followedBy: [],
+        },
+      };
+
+      // When
+      // @ts-ignore
+      prismaMock.article.count.mockResolvedValue(1);
+      // @ts-ignore
+      prismaMock.article.findMany.mockResolvedValue([mockedArticleResponse]);
+
+      // Then
+      const result = await getArticles({ search: 'dragon' });
+      expect(result.articles).toHaveLength(1);
+    });
+  });
+
   describe('deleteComment', () => {
     test('should throw an error ', () => {
       // Given
