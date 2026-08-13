@@ -6,6 +6,8 @@ import { RegisteredUser } from './registered-user.model';
 import generateToken from './token.utils';
 import { User } from './user.model';
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+$/;
+
 const checkUserUniqueness = async (email: string, username: string) => {
   const existingUserByEmail = await prisma.user.findUnique({
     where: {
@@ -43,6 +45,10 @@ export const createUser = async (input: RegisterInput): Promise<RegisteredUser> 
 
   if (!email) {
     throw new HttpException(422, { errors: { email: ["can't be blank"] } });
+  }
+
+  if (!EMAIL_REGEX.test(email)) {
+    throw new HttpException(422, { errors: { email: ['is invalid'] } });
   }
 
   if (!username) {

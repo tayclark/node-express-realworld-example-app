@@ -60,6 +60,20 @@ describe('AuthService', () => {
       await expect(createUser(user)).rejects.toThrow(error);
     });
 
+    test('should throw an error when creating new user with an invalid email ', async () => {
+      // Given
+      const user = {
+        id: 123,
+        username: 'RealWorld',
+        email: 'not-an-email',
+        password: '1234',
+      };
+
+      // Then
+      const error = String({ errors: { email: ['is invalid'] } });
+      await expect(createUser(user)).rejects.toThrow(error);
+    });
+
     test('should throw an error when creating new user with empty password ', async () => {
       // Given
       const user = {
