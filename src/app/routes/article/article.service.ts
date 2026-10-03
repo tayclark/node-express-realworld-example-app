@@ -82,11 +82,6 @@ export const getArticles = async (query: any, id?: number) => {
     skip: Number(query.offset) || 0,
     take: Number(query.limit) || 10,
     include: {
-      tagList: {
-        select: {
-          name: true,
-        },
-      },
       author: {
         select: {
           username: true,
@@ -104,8 +99,29 @@ export const getArticles = async (query: any, id?: number) => {
     },
   });
 
+  // Tags are resolved separately so the primary article query doesn't have to
+  // join and hydrate the full tagList relation for every row up front.
+  const articlesWithTags = await Promise.all(
+    articles.map(async (article: any) => {
+      const tagList = await prisma.tag.findMany({
+        where: {
+          articles: {
+            some: {
+              id: article.id,
+            },
+          },
+        },
+        select: {
+          name: true,
+        },
+      });
+
+      return { ...article, tagList };
+    }),
+  );
+
   return {
-    articles: articles.map((article: any) => articleMapper(article, id)),
+    articles: articlesWithTags.map((article: any) => articleMapper(article, id)),
     articlesCount,
   };
 };
